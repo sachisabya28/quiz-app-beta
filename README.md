@@ -7,7 +7,7 @@ Login and start with test.
 Not a user, then Register as User and login.
 
 
-Installation :
+** Installation : **
 
 git clone https://github.com/sachisabya28/quiz-app-beta.git <br />
 cd <root-directory>. <br />
