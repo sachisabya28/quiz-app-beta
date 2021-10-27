@@ -1,7 +1,13 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, RadioField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-
+from logging import exception
+try:
+    from flask_wtf import FlaskForm
+    from wtforms import StringField, PasswordField, BooleanField, SubmitField, RadioField
+    from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+    from wtforms.ext.sqlalchemy.fields import QuerySelectField
+    
+    
+except Exception as ex:
+    print('exception is ',ex)
 from app.models import User
 
 class LoginForm(FlaskForm):

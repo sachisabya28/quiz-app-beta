@@ -4,6 +4,7 @@ from werkzeug.urls import url_parse
 from app.forms import LoginForm, RegistrationForm, QuestionForm
 from app.models import User, Questions
 from app import db
+from flask import jsonify
 
 
 @app.before_request
@@ -20,47 +21,54 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            return redirect(url_for('login'))
-        session['user_id'] = user.id
-        session['marks'] = 0
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('home')
-        return redirect(next_page)
-        return redirect(url_for('home'))
-    if g.user:
-        return redirect(url_for('home'))
-    return render_template('login.html', form=form, title='Login')
+    try:
+        form = LoginForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=form.username.data).first()
+            if user is None or not user.check_password(form.password.data):
+                return redirect(url_for('login'))
+            session['user_id'] = user.id
+            session['marks'] = 0
+            next_page = request.args.get('next')
+            if not next_page or url_parse(next_page).netloc != '':
+                next_page = url_for('home')
+            return redirect(next_page)
+            return redirect(url_for('home'))
+        if g.user:
+            return redirect(url_for('home'))
+        return render_template('login.html', form=form, title='Login')
+    except Exception as ex:
+        return ex
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.password.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        session['user_id'] = user.id
-        session['marks'] = 0
-        return redirect(url_for('home'))
-    if g.user:
-        return redirect(url_for('home'))
-    return render_template('register.html', title='Register', form=form)
+    try:
+        form = RegistrationForm()
+        if form.validate_on_submit():
+            user = User(username=form.username.data, email=form.password.data)
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            session['user_id'] = user.id
+            session['marks'] = 0
+            return redirect(url_for('home'))
+        if g.user:
+            return redirect(url_for('home'))
+        return render_template('register.html', title='Register', form=form)
+    except Exception as ex:
+        return jsonify(ex)
 
 
 
 @app.route('/question/<int:id>', methods=['GET', 'POST'])
 def question(id):
+    if not g.user:
+        return redirect(url_for('login'))
     form = QuestionForm()
     q = Questions.query.filter_by(q_id=id).first()
     if not q:
         return redirect(url_for('score'))
-    if not g.user:
-        return redirect(url_for('login'))
+    
     if request.method == 'POST':
         option = request.form['options']
         if option == q.ans:
